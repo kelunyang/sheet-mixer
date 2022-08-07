@@ -143,7 +143,7 @@
                       color="error"
                       @click="proceedMerge"
                       class="ma-1 flex-grow-1"
-                      :disabled="activeKey.length === 0"
+                      :disabled="readyMerge"
                     >
                       開始併表
                     </v-btn>
@@ -639,7 +639,7 @@
           <v-btn class="ma-1 red darken-4 white--text" @click="openColumnW" :disabled="tables.length === 0">新增欄位組合</v-btn>
         </v-col>
         <v-col class='blue darken-4 flex-column d-flex'>
-          <v-btn class="ma-1 red darken-4 white--text" @click="selectKeys" :disabled="activeKey.length === 0">開始併表</v-btn>
+          <v-btn class="ma-1 red darken-4 white--text" @click="selectKeys" :disabled="!readyMerge">開始併表</v-btn>
           <v-btn class="ma-1 red darken-4 white--text" @click="exportResult" :disabled="exportData.length === 0">匯出清單</v-btn>
           <v-btn class="ma-1 red darken-4 white--text" @click="logW = true" :disabled="log.length === 0">查看紀錄({{ log.length }})</v-btn>
         </v-col>
@@ -747,15 +747,12 @@ export default {
       return false;
     },
     activeKey: function() {
-      if(!this.startMerge) {
-        return _.filter(this.columnMapping, (column) => {
-          if(column.table === "main") {
-            return column.active;
-          }
-          return false;
-        })
-      }
-      return [];
+      return _.filter(this.columnMapping, (column) => {
+        if(column.table === "main") {
+          return column.active;
+        }
+        return false;
+      });
     },
     mainCount: function() {
       let main = _.filter(this.tables, (table) => {
@@ -831,7 +828,7 @@ export default {
         tick: args.tick,
         id: uuidv4()
       });
-      oriobj.startMerge = false;
+      oriobj.readyMerge = true;
     });
   },
   methods: {
@@ -849,6 +846,9 @@ export default {
       this.columnSets = _.filter(this.columnSets, (set) => {
         return set.id !== Rset.id;
       });
+      if(this.columnSets.length === 0) {
+        this.readyMerge = false;
+      }
     },
     proceedMerge: function() {
       window.ipcRenderer.send("mergeData", {
@@ -860,7 +860,7 @@ export default {
         tableDB: this.tables,
         uidDB: _.filter(this.mergeColumns, (column) => { return column.active; })
       });
-      this.startMerge = true;
+      this.readyMerge = false;
       this.closeMergeW();
     },
     selectKeys: function() {
@@ -948,6 +948,7 @@ export default {
         tick: dayjs().valueOf(),
         id: uuidv4()
       });
+      this.readyMerge = true;
       this.activeColumn = [];
       this.closeColumnW();
     },
@@ -1265,7 +1266,7 @@ export default {
     enableGrouping: false,
     activeColumn: [],
     tableFilter: "",
-    startMerge: false,
+    readyMerge: false,
     mergeColumns: [],
     mergeDataW: false,
     cellDB: [],
