@@ -27,7 +27,7 @@
             <p>本程式是用來合併大量CSV檔案使用的，使用的效果見下圖</p>
             <v-img src="@/assets/intro.png"></v-img>
             <p>本程式簡化了在excel裡面大量併表需要的vlookup流程（例如要把三張表格裡的性別合併為一欄），以及併表結束之後要分組輸出的剪貼問題，眾所皆知，自動化程度越高，就越能保持資料唯一性，減少手殘</p>
-            <p>請注意在你使用之前務必把各種excel檔案都轉成CSV（建議使用unicode編碼的CSV，不過大部分情況下沒差），輸出方法看下圖</p>
+            <p>請注意在你使用之前務必把各種excel檔案都轉成CSV（建議使用unicode編碼的CSV，不過大部分情況下沒差），可看下圖</p>
             <v-img src="@/assets/csv.png"></v-img>
             <p>雖然聽起來很自動化，但請務必注意你要合併的表格，他們至少都有一欄確定無誤的用戶代號（可以是姓名、身分證等任何東西），然後再準備好一張主表（裡面要包含這些對應關係的表，例如一張記錄用戶身分證－學號－姓名的表），這樣App就能自動整併了，如果你沒聽懂，等一下打開後有範本可以看</p>
             <p>Kelunyang@LKSH 2022 (kelunyang@outlook.com)</p>
@@ -81,8 +81,8 @@
                       <draggable v-model="mergeColumns" class="d-flex flex-row pa-1">
                         <v-item v-for="column in mergeColumns" :key="column.id+'merge'">
                           <v-card
-                            :color="column.active ? 'primary' : 'grey lighten-1'"
-                            class="d-flex align-center justify-center flex-column ma-1 flex-grow-1 flex-wrap"
+                            :color="column.active ? 'black' : 'grey lighten-1'"
+                            class="d-flex align-center justify-center flex-column ma-1 flex-grow-1 flex-wrap white--text"
                             dark
                             height="100"
                             @click="selectColumn(column)"
@@ -114,7 +114,7 @@
                 <v-stepper-content step="2">
                   <div class="d-flex flex-column pa-1">
                     <v-alert type="info" icon="fa-info">
-                      如果你不要分組輸出，就直接按「開始併表」，系統會根據你選擇的欄位把查詢結果分割為多個檔案輸出
+                      如果你不要分組輸出，就直接按「開始併表」，系統會根據你選擇的欄位把查詢結果分割為多個檔案輸出，如果你選了啟動分組但沒選分組欄位，系統不會有任何動作喔
                     </v-alert>
                     <v-switch
                       v-model="enableGrouping"
@@ -143,7 +143,7 @@
                       color="error"
                       @click="proceedMerge"
                       class="ma-1 flex-grow-1"
-                      :disabled="readyMerge"
+                      :disabled="!readyMerge"
                     >
                       開始併表
                     </v-btn>
@@ -236,8 +236,8 @@
                           >
                             <v-item>
                               <v-card
-                                :color="column.active ? 'primary' : 'grey lighten-1'"
-                                class="d-flex align-center justify-center flex-column"
+                                :color="column.active ? 'black' : 'grey lighten-1'"
+                                class="d-flex align-center justify-center flex-column white--text"
                                 dark
                                 height="100"
                                 @click="selectColumn(column)"
@@ -277,8 +277,8 @@
                       <draggable v-model="activeColumn" class="d-flex flex-row pa-1">
                         <v-item v-for="column in activeColumn" :key="column.id+'orderA'">
                           <v-card
-                            color="primary"
-                            class="d-flex align-center justify-center flex-column ma-1 flex-grow-1 flex-wrap drag"
+                            color="black"
+                            class="d-flex align-center justify-center flex-column ma-1 flex-grow-1 flex-wrap drag white--text"
                             dark
                             height="100"
                           >
@@ -851,17 +851,29 @@ export default {
       }
     },
     proceedMerge: function() {
-      window.ipcRenderer.send("mergeData", {
-        grouping: this.enableGrouping,
-        groupingColumn: this.groupingColumn,
-        cellDB: this.cellDB,
-        columnDB: this.columnMapping,
-        setDB: this.columnSets,
-        tableDB: this.tables,
-        uidDB: _.filter(this.mergeColumns, (column) => { return column.active; })
-      });
-      this.readyMerge = false;
-      this.closeMergeW();
+      let proceed = false;
+      if(this.readyMerge) {
+        if(!this.enableGrouping) {
+          proceed = true;
+        } else {
+          if(this.groupingColumn !== "") {
+            proceed = true;
+          }
+        }
+      }
+      if(proceed) {
+        window.ipcRenderer.send("mergeData", {
+          grouping: this.enableGrouping,
+          groupingColumn: this.groupingColumn,
+          cellDB: this.cellDB,
+          columnDB: this.columnMapping,
+          setDB: this.columnSets,
+          tableDB: this.tables,
+          uidDB: _.filter(this.mergeColumns, (column) => { return column.active; })
+        });
+        this.readyMerge = false;
+        this.closeMergeW();
+      }
     },
     selectKeys: function() {
       this.mergeColumns = this.mainHeaders;
