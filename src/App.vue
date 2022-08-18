@@ -308,6 +308,7 @@
                 </v-stepper-content>
                 <v-stepper-content step="3">
                   <div class="d-flex flex-column pa-1">
+                    <div class="text-h6">你要如何處理合併前的欄位</div>
                     <v-radio-group v-model="textMethod">
                       <v-radio label="取代（預設值選這個）" value="0"></v-radio>
                       <v-text-field
@@ -347,6 +348,13 @@
                       <v-radio label="自訂（請自己輸入javascript的函式，請注意你在處理的是一個陣列，可以使用lodash，參數名稱是x）" value="2"></v-radio>
                       <tip-tap v-if="textMethod === '2'" v-model="textFunction"></tip-tap>
                     </v-radio-group>
+                    <div class="text-h6">合併後欄位還是沒資料，該欄位填入什麼？</div>
+                    <v-text-field
+                      outlined
+                      label="如何處理資料為空的問題"
+                      placeholder="無"
+                      v-model="emptyMerge"
+                    ></v-text-field>
                     <div class="d-flex flex-row">
                       <v-btn
                         color="primary"
@@ -917,6 +925,7 @@ export default {
       this.columnRegexTo = "";
       this.textMethod = "";
       this.textReplacer = "◯";
+      this.emptyMerge = "無";
       this.textFunction = "<pre><code class='language-javascript'>return x === '1' ? '男' : '女';</code></pre>";
       this.columnFunction = "<pre><code class='language-javascript'>function(x) { return x }</code></pre>";
       this.columnMethod = "";
@@ -951,7 +960,8 @@ export default {
         mixer: this.columnMixer,
         text: this.textMethod,
         replacer: this.textReplacer,
-        textFunction: textSyntax
+        textFunction: textSyntax,
+        emptyMerge: this.emptyMerge
       });
       this.log.push({
         table: "sys",
@@ -1258,6 +1268,7 @@ export default {
     },
   },
   data: () => ({
+    emptyMerge: "無",
     introW: true,
     regexTemplates: [
       {

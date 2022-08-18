@@ -157,7 +157,12 @@ async function createWindow() {
           }
           if(arg.setDB[i].method === "0") {
             if(output.length > 0) {
-              value = output[0];
+              value = "";
+              for(let t=0;t<output.length; t++) {
+                if(output[t] !== "") {
+                  value = output[t];
+                }
+              }
             } else {
               win.webContents.send("mergeStatus", {
                 data: "[" + uid + "]在欄位[" + arg.setDB[i].name + "]時資料為空",
@@ -195,6 +200,9 @@ async function createWindow() {
           } else if(arg.setDB[i].method === "4") {
             let customFunction = Function("x", arg.setDB[i].function);
             value = customFunction(output);
+          }
+          if(value === "") {
+            value = arg.setDB[i].emptyMerge;
           }
           row[arg.setDB[i].name] = value;
         }
